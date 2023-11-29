@@ -1,0 +1,39 @@
+entryPoints:
+  uptime_kuma:
+    address: ":3001"
+  portainer:
+    address: ":9443"
+
+# http:
+#   routers:
+#     portainer:
+#       rule: Host(`lab.kurokeita.dev`)
+#       entryPoints:
+#         - portainer
+#       tls: true
+#       service: portainer
+
+api:
+  dashboard: true
+  insecure: true
+
+providers:
+  docker: {}
+  file:
+    filename: /etc/traefik/traefik.yml
+    watch: true
+
+log:
+  level: DEBUG
+
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: "/certs/fullchain.pem"
+        keyFile: "/certs/privkey.pem"
+  certificates:
+    - certFile: "/certs/fullchain.pem"
+      keyFile: "/certs/privkey.pem"
+      stores:
+        - default

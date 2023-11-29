@@ -1,0 +1,53 @@
+version: "3.7"
+
+name: "lab"
+
+services:
+  ###### Portainer #########
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: lab.portainer
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "~/docker/portainer/:/data"
+    networks:
+      - lab
+
+ ###### Uptime Kuma #########
+  kuma:
+    image: louislam/uptime-kuma:1
+    container_name: lab.uptime_kuma
+    restart: always
+    volumes:
+      - "~/docker/uptime_kuma:/app/data"
+    networks:
+      - lab
+
+ ###### CloudFlare Tunnel #########
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: lab.tunnel
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    networks:
+      - lab
+
+ ###### ddclient for Dynamic DNS #########
+  ddclient:
+    image: lscr.io/linuxserver/ddclient:latest
+    container_name: lab.ddclient
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - "~/docker/ddclient:/config"
+    restart: always
+
+networks:
+  lab:
+    driver: bridge
+
