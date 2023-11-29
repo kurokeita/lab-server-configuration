@@ -46,6 +46,8 @@ services:
     volumes:
       - "~/docker/ddclient:/config"
     restart: always
+    networks:
+      - lab
 
 networks:
   lab:
