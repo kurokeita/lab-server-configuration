@@ -1,5 +1,11 @@
 # Lab Server Configuration
 
+<div align="center">
+
+  [![Portainer](https://uptime.kurokeita.dev/api/badge/3/status)](https://status.kurokeita.dev/) [![Portainer](https://uptime.kurokeita.dev/api/badge/3/uptime)](https://status.kurokeita.dev/) [![Portainer](https://uptime.kurokeita.dev/api/badge/3/cert-exp)](https://status.kurokeita.dev/) [![Portainer](https://uptime.kurokeita.dev/api/badge/3/ping)](https://status.kurokeita.dev/) [![Portainer](https://uptime.kurokeita.dev/api/badge/3/avg-response)](https://status.kurokeita.dev/)
+
+</div>
+
 ## CloudFlare Tunnel configuration
 
 * Get the tunnel token for CloudFlare from CloudFlare Zero Trust dashboard.
