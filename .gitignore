@@ -4,3 +4,4 @@ uptime_kuma
 ddclient/ddclient.conf
 .mariadb
 keycloak_data
+.mongodb
