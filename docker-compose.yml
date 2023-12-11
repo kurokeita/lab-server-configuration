@@ -7,6 +7,9 @@ services:
   portainer:
     image: portainer/portainer-ee:latest
     container_name: lab.portainer
+    depends_on:
+      keycloak:
+        condition: service_healthy
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -27,7 +30,15 @@ services:
   ###### Keycloak #########
   keycloak:
     container_name: lab.keycloak
-    image: quay.io/keycloak/keycloak:22.0.4
+    build:
+      context: .
+      dockerfile: dockerfiles/keycloak.dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
     restart: always
     ports:
       - "8080:8080"
@@ -42,6 +53,7 @@ services:
       KC_DB_URL_HOST: ${KC_DB_HOST}
       KC_DB_URL_PORT: ${KC_DB_PORT}
       KC_HOSTNAME: keycloak.kurokeita.dev
+      KC_HEALTH_ENABLED: true
     volumes:
       - ./keycloak_data:/opt/keycloak/data/
     command: start
