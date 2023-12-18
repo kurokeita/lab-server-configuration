@@ -13,7 +13,7 @@ services:
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./portainer/:/data
+      - ./data/portainer/:/data
     networks:
       - lab
 
@@ -23,7 +23,7 @@ services:
     container_name: lab.uptime_kuma
     restart: always
     volumes:
-      - ./uptime_kuma:/app/data
+      - ./data/uptime_kuma:/app/data
     networks:
       - lab
 
@@ -55,7 +55,7 @@ services:
       KC_HOSTNAME: keycloak.kurokeita.dev
       KC_HEALTH_ENABLED: true
     volumes:
-      - ./keycloak_data:/opt/keycloak/data/
+      - ./data/keycloak:/opt/keycloak/data/
     command: start
     user: root
     depends_on:
@@ -77,7 +77,7 @@ services:
     restart: always
     tty: true
     volumes:
-      - ./.mariadb:/var/lib/mysql
+      - ./data/mariadb:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "3306:3306"
@@ -102,7 +102,7 @@ services:
     restart: always
     tty: true
     volumes:
-      - ./.mongodb:/data/db
+      - ./data/mongodb:/data/db
     ports:
       - "27017:27017"
     environment:
@@ -148,8 +148,49 @@ services:
       - PGID=1000
       - TZ=Etc/UTC
     volumes:
-      - ./ddclient:/config
+      - ./data/ddclient:/config
     restart: always
+    networks:
+      - lab
+
+  ###### Redis #########
+  redis:
+    container_name: lab.redis
+    image: docker.io/library/redis:7
+    restart: always
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - lab
+
+  ###### Paperless #########
+  paperless:
+    container_name: lab.paperless
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: always
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - ./data/paperless/data:/usr/src/paperless/data
+      - ./data/paperless/media:/usr/src/paperless/media
+      - ./data/paperless/export:/usr/src/paperless/export
+      - ./data/paperless/consume:/usr/src/paperless/consume
+    environment:
+      PAPERLESS_REDIS: redis://redis:6379
+      PAPERLESS_DBENGINE: mariadb
+      PAPERLESS_DBHOST: mariadb
+      PAPERLESS_DBUSER: lab # only needed if non-default username
+      PAPERLESS_DBPASS: ${MARIADB_PASSWORD} # only needed if non-default password
+      PAPERLESS_DBPORT: 3306
+      PAPERLESS_CSRF_TRUSTED_ORIGINS: ${PAPERLESS_URL}
     networks:
       - lab
 

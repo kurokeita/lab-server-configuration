@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cd ../.mariadb/ || exit
+cd ../data/mariadb/ || exit
 
 if ! [ -f "mariadb_backup.tar.gz" ]; then
     echo "There is no backup tar file to restore from."
