@@ -23,7 +23,7 @@ services:
     container_name: lab.uptime_kuma
     restart: always
     volumes:
-      - ./uptime_kuma:/app/data
+      - ./data/uptime_kuma:/app/data
     networks:
       - lab
 

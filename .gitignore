@@ -1,9 +1,4 @@
 .env
-portainer
-uptime_kuma
-ddclient/ddclient.conf
-.mariadb
-keycloak_data
-.mongodb
-data
+data/**
+!data/ddclient
 !data/ddclient/ddclient.conf.example
