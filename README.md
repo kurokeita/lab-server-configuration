@@ -20,3 +20,9 @@
 ## Start the lab server
 
 * `docker compose up -d`
+
+## Unencrypted DoH for Adguard Home
+
+* After the Adguard Home service is started, use `nano` with `sudo` to edit its configuration file in `data/adguard/conf/AdGuardHome.yaml`.
+* Find `tls.allow_unencrypted_doh` and set it to `true`.
+* Restart the Adguard Home service and unencrypted DoH will be enabled to support for reverse proxy.
