@@ -194,6 +194,30 @@ services:
     networks:
       - lab
 
+  ###### Wireguard #########
+  wireguard:
+    container_name: lab.wireguard
+    image: lscr.io/linuxserver/wireguard:latest
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - SERVERURL=${WIREGUARD_DOMAIN}
+      - PEERS=${WIREGUARD_PEER_NUMBER}
+      - PEERDNS=${WIREGUARD_PEER_DNS}
+      - PERSISTENTKEEPALIVE_PEERS=all
+      - LOG_CONFS=true
+    volumes:
+      - ./data/wireguard/config:/config
+    ports:
+      - 51820:51820/udp
+    restart: always
+    networks:
+      - lab
+
 networks:
   lab:
     driver: bridge
