@@ -1,5 +1,3 @@
-version: "3.7"
-
 name: "lab"
 
 services:
@@ -228,6 +226,14 @@ services:
     volumes:
       - ./data/adguard/work:/opt/adguardhome/work
       - ./data/adguard/conf:/opt/adguardhome/conf
+    networks:
+      - lab
+
+  ###### Suwayomi Server #########
+  suwayomi:
+    container_name: lab.suwayomi_server
+    image: ghcr.io/suwayomi/tachidesk
+    restart: always
     networks:
       - lab
 
