@@ -230,12 +230,12 @@ services:
       - lab
 
   ###### Suwayomi Server #########
-  suwayomi:
-    container_name: lab.suwayomi_server
-    image: ghcr.io/suwayomi/tachidesk
-    restart: always
-    networks:
-      - lab
+  # suwayomi:
+  #   container_name: lab.suwayomi_server
+  #   image: ghcr.io/suwayomi/tachidesk
+  #   restart: always
+  #   networks:
+  #     - lab
 
 networks:
   lab:
