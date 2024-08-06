@@ -19,7 +19,7 @@ services:
   kuma:
     image: louislam/uptime-kuma:1
     container_name: lab.uptime_kuma
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./data/uptime_kuma:/app/data
     networks:
@@ -97,7 +97,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 10s
-    restart: always
+    restart: unless-stopped
     tty: true
     volumes:
       - ./data/mongodb:/data/db
@@ -113,7 +113,7 @@ services:
   mongo-express:
     image: mongo-express:1.0.0-18-alpine3.18
     container_name: lab.mongo_express
-    restart: always
+    restart: unless-stopped
     ports:
       - "8081:8081"
     environment:
@@ -165,7 +165,7 @@ services:
   paperless:
     container_name: lab.paperless
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
-    restart: always
+    restart: unless-stopped
     depends_on:
       mariadb:
         condition: service_healthy
@@ -212,7 +212,7 @@ services:
       - ./data/wireguard/config:/config
     ports:
       - 51820:51820/udp
-    restart: always
+    restart: unless-stopped
     networks:
       - lab
 
@@ -220,7 +220,7 @@ services:
   adguard:
     container_name: lab.adguard_home
     image: adguard/adguardhome:latest
-    restart: always
+    restart: unless-stopped
     ports:
       - 3000:3000/tcp
     volumes:
@@ -233,7 +233,7 @@ services:
   # suwayomi:
   #   container_name: lab.suwayomi_server
   #   image: ghcr.io/suwayomi/tachidesk
-  #   restart: always
+  #   restart: unless-stopped
   #   networks:
   #     - lab
 
