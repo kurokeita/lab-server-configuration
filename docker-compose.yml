@@ -28,9 +28,7 @@ services:
   ###### Keycloak #########
   keycloak:
     container_name: lab.keycloak
-    build:
-      context: .
-      dockerfile: dockerfiles/keycloak.dockerfile
+    image: quay.io/keycloak/keycloak:latest
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
       interval: 10s
