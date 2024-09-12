@@ -14,7 +14,7 @@ services:
       - ./data/portainer/:/data
     networks:
       - lab
-    profile:
+    profiles:
       - basic
 
   ###### Uptime Kuma #########
@@ -26,7 +26,7 @@ services:
       - ./data/uptime_kuma:/app/data
     networks:
       - lab
-    profile:
+    profiles:
       - basic
 
   ###### Keycloak #########
@@ -63,7 +63,7 @@ services:
         condition: service_healthy
     networks:
       - lab
-    profile:
+    profiles:
       - basic
 
   ##### MariaDB #####
@@ -90,7 +90,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
     networks:
       - lab
-    profile:
+    profiles:
       - basic
 
   ##### MongoDB #####
@@ -114,7 +114,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_ROOT_PASSWORD}
     networks:
       - lab
-    profile:
+    profiles:
       - mongo
 
   ##### Mongo Express Web UI #####
@@ -133,7 +133,7 @@ services:
       ME_CONFIG_OPTIONS_EDITORTHEME: ayu-mirage
     networks:
       - lab
-    profile:
+    profiles:
       - mongo
 
   ###### CloudFlare Tunnel #########
@@ -146,7 +146,7 @@ services:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     networks:
       - lab
-    profile:
+    profiles:
       - basic
 
   ###### ddclient for Dynamic DNS #########
@@ -162,7 +162,7 @@ services:
     restart: always
     networks:
       - lab
-    profile:
+    profiles:
       - basic
 
   ###### Redis #########
@@ -174,7 +174,7 @@ services:
       - ./data/redis:/data
     networks:
       - lab
-    profile:
+    profiles:
       - redis
 
   ###### Paperless #########
@@ -207,7 +207,7 @@ services:
       PAPERLESS_CSRF_TRUSTED_ORIGINS: ${PAPERLESS_URL}
     networks:
       - lab
-    profile:
+    profiles:
       - paperless
 
   ###### Wireguard #########
@@ -233,7 +233,7 @@ services:
     restart: unless-stopped
     networks:
       - lab
-    profile:
+    profiles:
       - vpn
 
   ###### Adguard Home #########
@@ -248,7 +248,7 @@ services:
       - ./data/adguard/conf:/opt/adguardhome/conf
     networks:
       - lab
-    profile:
+    profiles:
       - vpn
 
 networks:
