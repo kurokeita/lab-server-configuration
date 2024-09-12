@@ -34,7 +34,7 @@ services:
     container_name: lab.keycloak
     image: quay.io/keycloak/keycloak:latest
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
+      test: chmod +x /opt/healthcheck.sh && /opt/healthcheck.sh || exit 1
       interval: 10s
       timeout: 10s
       retries: 5
@@ -56,6 +56,7 @@ services:
       KC_HEALTH_ENABLED: true
     volumes:
       - ./data/keycloak:/opt/keycloak/data/
+      - ./healthcheck/keycloak.sh:/opt/healthcheck.sh
     command: start
     user: root
     depends_on:
@@ -71,7 +72,14 @@ services:
     image: mariadb:10.6.16
     container_name: lab.mariadb
     healthcheck:
-      test: healthcheck.sh --su-mysql --connect --innodb_initialized
+      test: [
+        "CMD",
+        "healthcheck.sh",
+        "--su-mysql",
+        "--defaults-file=/var/lib/healthcheck.cnf",
+        "--connect",
+        "--innodb_initialized"
+      ]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -81,6 +89,7 @@ services:
     volumes:
       - ./data/mariadb:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./healthcheck/mariadb.cnf:/var/lib/healthcheck.cnf
     ports:
       - "3306:3306"
     environment:
