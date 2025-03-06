@@ -60,6 +60,53 @@ services:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
     restart: unless-stopped
 
+  ##### PostgreSQL #####
+  postgres:
+    image: postgres:17.2
+    container_name: lab.postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: always
+    tty: true
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    depends_on:
+      tailscale-mariadb:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    network_mode: service:tailscale-postgres
+
+  ###### Tailscale for PostgreSQL #########
+  tailscale-postgres:
+    image: tailscale/tailscale:latest
+    container_name: lab.tailscale-postgres
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_EXTRA_ARGS=--advertise-tags=tag:server
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_ENABLE_HEALTH_CHECK=true
+      - TS_LOCAL_ADDR_PORT=127.0.0.1:9002
+    volumes:
+      - ./data/tailscale-postgres/state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
+    restart: unless-stopped
+
   ##### MongoDB #####
   mongodb:
     image: mongo:7.0.4

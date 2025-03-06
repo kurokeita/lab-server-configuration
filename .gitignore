@@ -2,3 +2,5 @@
 data/**
 !data/ddclient
 !data/ddclient/ddclient.conf.example
+configs/tailscale/extras/**
+extras.docker-compose.yml
