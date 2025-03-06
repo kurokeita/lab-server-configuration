@@ -1,10 +1,15 @@
-name: "lab"
+name: "lab-services"
 
 services:
   ###### Portainer #########
   portainer:
     image: portainer/portainer-ee:latest
     container_name: lab.portainer
+    labels:
+      tsdproxy.enable: "true"
+      tsdproxy.name: "portainer"
+      tsdproxy.container_port: "9000"
+      tsdproxy.ephemeral: "true"
     depends_on:
       keycloak:
         condition: service_healthy
@@ -12,10 +17,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/portainer/:/data
+    environment:
+      - PORTAINER_DISABLE_SSL=true
+      - PORTAINER_HTTP_ONLY=1
     networks:
       - lab
-    profiles:
-      - basic
 
   ###### Uptime Kuma #########
   kuma:
@@ -26,8 +32,6 @@ services:
       - ./data/uptime_kuma:/app/data
     networks:
       - lab
-    profiles:
-      - basic
 
   ###### Keycloak #########
   keycloak:
@@ -59,91 +63,8 @@ services:
       - ./healthcheck/keycloak.sh:/opt/healthcheck.sh
     command: start
     user: root
-    depends_on:
-      mariadb:
-        condition: service_healthy
     networks:
       - lab
-    profiles:
-      - basic
-
-  ##### MariaDB #####
-  mariadb:
-    image: mariadb:10.11.9
-    container_name: lab.mariadb
-    healthcheck:
-      test: [
-        "CMD",
-        "healthcheck.sh",
-        "--su-mysql",
-        "--defaults-file=/var/lib/healthcheck.cnf",
-        "--connect",
-        "--innodb_initialized"
-      ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
-    restart: always
-    tty: true
-    volumes:
-      - ./data/mariadb:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./healthcheck/mariadb.cnf:/var/lib/healthcheck.cnf
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_DATABASE: lab
-      MYSQL_USER: lab
-      MYSQL_PASSWORD: ${MARIADB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-    networks:
-      - lab
-    profiles:
-      - basic
-
-  ##### MongoDB #####
-  mongodb:
-    image: mongo:7.0.4
-    container_name: lab.mongodb
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
-    restart: unless-stopped
-    tty: true
-    volumes:
-      - ./data/mongodb:/data/db
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_ROOT_PASSWORD}
-    networks:
-      - lab
-    profiles:
-      - mongo
-
-  ##### Mongo Express Web UI #####
-  mongo-express:
-    image: mongo-express:1.0.0-18-alpine3.18
-    container_name: lab.mongo_express
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_DB_ROOT_PASSWORD}
-      ME_CONFIG_MONGODB_SERVER: mongodb
-      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME}
-      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD}
-      ME_CONFIG_OPTIONS_EDITORTHEME: ayu-mirage
-    networks:
-      - lab
-    profiles:
-      - mongo
 
   ###### CloudFlare Tunnel #########
   cloudflared:
@@ -155,8 +76,6 @@ services:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     networks:
       - lab
-    profiles:
-      - basic
 
   ###### ddclient for Dynamic DNS #########
   ddclient:
@@ -171,20 +90,16 @@ services:
     restart: always
     networks:
       - lab
-    profiles:
-      - basic
 
   ###### Redis #########
   redis:
     container_name: lab.redis
     image: docker.io/library/redis:7
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./data/redis:/data
     networks:
       - lab
-    profiles:
-      - redis
 
   ###### Paperless #########
   paperless:
@@ -209,10 +124,10 @@ services:
     environment:
       PAPERLESS_REDIS: redis://redis:6379
       PAPERLESS_DBENGINE: mariadb
-      PAPERLESS_DBHOST: mariadb
-      PAPERLESS_DBUSER: lab # only needed if non-default username
-      PAPERLESS_DBPASS: ${MARIADB_PASSWORD} # only needed if non-default password
-      PAPERLESS_DBPORT: 3306
+      PAPERLESS_DBHOST: ${PAPERLESS_DB_HOST}
+      PAPERLESS_DBUSER: ${PAPERLESS_DB_USERNAME}
+      PAPERLESS_DBPASS: ${PAPERLESS_DB_PASSWORD}
+      PAPERLESS_DBPORT: ${PAPERLESS_DB_PORT}
       PAPERLESS_CSRF_TRUSTED_ORIGINS: ${PAPERLESS_URL}
     networks:
       - lab
@@ -259,6 +174,21 @@ services:
       - lab
     profiles:
       - vpn
+
+  ###### tsdproxy #########
+  tsdproxy:
+    image: almeidapaulopt/tsdproxy:latest
+    container_name: lab.tsdproxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/tsdproxydata/data:/data
+      - ./data/tsdproxydata/config:/config
+    environment:
+      - TSDPROXY_AUTHKEY=${TS_AUTHKEY}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - lab
 
 networks:
   lab:

@@ -1,0 +1,145 @@
+name: "lab-db"
+
+services:
+  ##### MariaDB #####
+  mariadb:
+    image: mariadb:10.11.9
+    container_name: lab.mariadb
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "healthcheck.sh",
+          "--su-mysql",
+          "--defaults-file=/var/lib/healthcheck.cnf",
+          "--connect",
+          "--innodb_initialized",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: always
+    tty: true
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./healthcheck/mariadb.cnf:/var/lib/healthcheck.cnf
+    depends_on:
+      tailscale-mariadb:
+        condition: service_healthy
+    environment:
+      MYSQL_DATABASE: lab
+      MYSQL_USER: lab
+      MYSQL_PASSWORD: ${MARIADB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    network_mode: service:tailscale-mariadb
+
+  ###### Tailscale for MariaDB #########
+  tailscale-mariadb:
+    image: tailscale/tailscale:latest
+    container_name: lab.tailscale-mariadb
+    hostname: mariadb
+    ports:
+      - "3306:3306"
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_EXTRA_ARGS=--advertise-tags=tag:server
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_ENABLE_HEALTH_CHECK=true
+      - TS_LOCAL_ADDR_PORT=127.0.0.1:9002
+    volumes:
+      - ./data/tailscale-mariadb/state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
+    restart: unless-stopped
+
+  ##### MongoDB #####
+  mongodb:
+    image: mongo:7.0.4
+    container_name: lab.mongodb
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - ./data/mongodb:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_ROOT_PASSWORD}
+    network_mode: service:tailscale-mongodb
+
+  ###### Tailscale for MongoDB #########
+  tailscale-mongodb:
+    image: tailscale/tailscale:latest
+    container_name: lab.tailscale-mongodb
+    hostname: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_EXTRA_ARGS=--advertise-tags=tag:server
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_ENABLE_HEALTH_CHECK=true
+      - TS_LOCAL_ADDR_PORT=127.0.0.1:9002
+    volumes:
+      - ./data/tailscale-mongodb/state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
+    restart: unless-stopped
+
+  ##### Mongo Express Web UI #####
+  mongo-express:
+    image: mongo-express:1.0.0-18-alpine3.18
+    container_name: lab.mongo_express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_DB_ROOT_PASSWORD}
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD}
+      ME_CONFIG_OPTIONS_EDITORTHEME: ayu-mirage
+    network_mode: service:tailscale-mongo-express
+
+  ###### Tailscale for Mongo Express #########
+  tailscale-mongo-express:
+    image: tailscale/tailscale:latest
+    container_name: lab.tailscale-mongo-express
+    hostname: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_SERVE_CONFIG=/etc/tailscale/serve.json
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_ENABLE_HEALTH_CHECK=true
+      - TS_LOCAL_ADDR_PORT=127.0.0.1:9002
+    volumes:
+      - ./configs/tailscale/mongo_express/serve.json:/etc/tailscale/serve.json:ro
+      - ./data/tailscale-mongo-express/state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
+    restart: unless-stopped
