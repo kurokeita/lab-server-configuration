@@ -140,7 +140,7 @@ services:
   tailscale-adguard:
     image: tailscale/tailscale:latest
     container_name: lab.tailscale-adguard
-    hostname: ${ADGUARD_HOSTNAME:adguard}
+    hostname: ${ADGUARD_HOSTNAME:-adguard}
     ports:
       - 3000:3000
     environment:
