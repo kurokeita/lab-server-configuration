@@ -1,28 +1,6 @@
 name: "lab-services"
 
 services:
-  ###### Portainer #########
-  portainer:
-    image: portainer/portainer-ee:latest
-    container_name: lab.portainer
-    labels:
-      tsdproxy.enable: "true"
-      tsdproxy.name: "portainer"
-      tsdproxy.container_port: "9000"
-      tsdproxy.ephemeral: "true"
-    depends_on:
-      keycloak:
-        condition: service_healthy
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/portainer/:/data
-    environment:
-      - PORTAINER_DISABLE_SSL=true
-      - PORTAINER_HTTP_ONLY=1
-    networks:
-      - lab
-
   ###### Uptime Kuma #########
   kuma:
     image: louislam/uptime-kuma:1
@@ -135,7 +113,7 @@ services:
     profiles:
       - paperless
 
-  ###### tsdproxy #########
+  ###### Adguard #########
   adguard:
     image: adguard/adguardhome:latest
     container_name: lab.adguard
@@ -186,21 +164,6 @@ services:
     restart: unless-stopped
     profiles:
       - vpn
-
-  ###### tsdproxy #########
-  tsdproxy:
-    image: almeidapaulopt/tsdproxy:latest
-    container_name: lab.tsdproxy
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/tsdproxydata/data:/data
-      - ./data/tsdproxydata/config:/config
-    environment:
-      - TSDPROXY_AUTHKEY=${TS_AUTHKEY}
-      - DOCKER_HOST=unix:///var/run/docker.sock
-    restart: unless-stopped
-    networks:
-      - lab
 
 networks:
   lab:
