@@ -184,8 +184,8 @@ services:
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
     restart: unless-stopped
-  profiles:
-    - vpn
+    profiles:
+      - vpn
 
   ###### tsdproxy #########
   tsdproxy:
