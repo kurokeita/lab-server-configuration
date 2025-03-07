@@ -21,7 +21,7 @@ services:
   tailscale-portainer:
     image: tailscale/tailscale:latest
     container_name: lab.tailscale-portainer
-    hostname: portainer
+    hostname: ${PORTAINER_HOSTNAME:portainer}
     environment:
       TS_AUTHKEY: ${TS_AUTHKEY}
       TS_STATE_DIR: /var/lib/tailscale
