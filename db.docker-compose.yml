@@ -11,7 +11,6 @@ services:
           "CMD",
           "healthcheck.sh",
           "--su-mysql",
-          "--defaults-file=/var/lib/healthcheck.cnf",
           "--connect",
           "--innodb_initialized",
         ]
@@ -24,11 +23,11 @@ services:
     volumes:
       - ./data/mariadb:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./healthcheck/mariadb.cnf:/var/lib/healthcheck.cnf
     depends_on:
       tailscale-mariadb:
         condition: service_healthy
     environment:
+      MARIADB_AUTO_UPGRADE: 1
       MYSQL_DATABASE: lab
       MYSQL_USER: lab
       MYSQL_PASSWORD: ${MARIADB_PASSWORD}
