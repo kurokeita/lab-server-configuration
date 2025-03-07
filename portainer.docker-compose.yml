@@ -41,3 +41,42 @@ services:
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
     restart: unless-stopped
+
+  portainer-agent:
+    image: portainer/agent:2.27.1
+    container_name: lab.portainer-agent
+    restart: unless-stopped
+    depends_on:
+      tailscale-portainer-agent:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/portainer-agent:/var/run/portainer
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+      - /:/host
+    environment:
+      - PORTAINER_AGENT_DISABLE_SSL=true
+      - PORTAINER_AGENT_HTTP_ONLY=1
+    network_mode: service:tailscale-portainer-agent
+
+  ###### Tailscale for Portainer Agent #########
+  tailscale-portainer-agent:
+    image: tailscale/tailscale:latest
+    container_name: lab.tailscale-portainer-agent
+    hostname: ${PORTAINER_AGENT_HOSTNAME:-portainer-agent}
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: false
+      TS_ENABLE_HEALTH_CHECK: true
+      TS_LOCAL_ADDR_PORT: 127.0.0.1:9002
+    volumes:
+      - ./data/tailscale-portainer-agent/state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
+    restart: unless-stopped
