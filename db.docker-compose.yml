@@ -39,7 +39,7 @@ services:
   tailscale-mariadb:
     image: tailscale/tailscale:latest
     container_name: lab.tailscale-mariadb
-    hostname: mariadb
+    hostname: ${MARIADB_HOSTNAME:mariadb}
     ports:
       - "3306:3306"
     environment:
@@ -86,7 +86,7 @@ services:
   tailscale-postgres:
     image: tailscale/tailscale:latest
     container_name: lab.tailscale-postgres
-    hostname: postgres
+    hostname: ${POSTGRES_HOSTNAME:postgres}
     ports:
       - "5432:5432"
     environment:
@@ -130,7 +130,7 @@ services:
   tailscale-mongodb:
     image: tailscale/tailscale:latest
     container_name: lab.tailscale-mongodb
-    hostname: mongodb
+    hostname: ${MONGODB_HOSTNAME:mongodb}
     ports:
       - "27017:27017"
     environment:
@@ -169,7 +169,7 @@ services:
   tailscale-mongo-express:
     image: tailscale/tailscale:latest
     container_name: lab.tailscale-mongo-express
-    hostname: mongo-express
+    hostname: ${MONGO_EXPRESS_HOSTNAME:mongo-express}
     ports:
       - "8081:8081"
     environment:
