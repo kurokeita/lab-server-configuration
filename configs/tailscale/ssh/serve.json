@@ -1,0 +1,19 @@
+{
+  "TCP": {
+    "443": {
+      "HTTPS": true
+    },
+    "22": {
+      "TCPForward": "host.docker.internal:22"
+    }
+  },
+  "Web": {
+    "${TS_CERT_DOMAIN}:443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://host.docker.internal:8880"
+        }
+      }
+    }
+  }
+}
