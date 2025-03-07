@@ -20,9 +20,4 @@ services:
       - net_admin
       - sys_module
     restart: unless-stopped
-    networks:
-      - ssh
-
-networks:
-  ssh:
-    driver: bridge
+    network_mode: "host"
