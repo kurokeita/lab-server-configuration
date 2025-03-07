@@ -49,7 +49,7 @@ services:
     environment:
       KEYCLOAK_ADMIN: ${KC_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
-      KC_PROXY: edge
+      # KC_PROXY: edge
       KC_HTTP_ENABLED: true
       KC_DB: mariadb
       KC_DB_USERNAME: ${KC_DB_USERNAME}
@@ -58,6 +58,7 @@ services:
       KC_DB_URL_PORT: ${KC_DB_PORT}
       KC_HOSTNAME: keycloak.kurokeita.dev
       KC_HEALTH_ENABLED: true
+      KC_PROXY_HEADERS: xforwarded
     volumes:
       - ./data/keycloak:/opt/keycloak/data/
       - ./healthcheck/keycloak.sh:/opt/healthcheck.sh
@@ -134,46 +135,57 @@ services:
     profiles:
       - paperless
 
-  ###### Wireguard #########
-  wireguard:
-    container_name: lab.wireguard
-    image: lscr.io/linuxserver/wireguard:latest
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - SERVERURL=${WIREGUARD_DOMAIN}
-      - PEERS=${WIREGUARD_PEER_NUMBER}
-      - PEERDNS=${WIREGUARD_PEER_DNS}
-      - PERSISTENTKEEPALIVE_PEERS=all
-      - LOG_CONFS=true
-    volumes:
-      - ./data/wireguard/config:/config
-    ports:
-      - 51820:51820/udp
-    restart: unless-stopped
-    networks:
-      - lab
-    profiles:
-      - vpn
-
-  ###### Adguard Home #########
+  ###### tsdproxy #########
   adguard:
-    container_name: lab.adguard_home
     image: adguard/adguardhome:latest
-    restart: unless-stopped
-    ports:
-      - 3000:3000/tcp
+    container_name: lab.adguard
+    environment:
+      TZ: Etc/UTC
+    depends_on:
+      tailscale-adguard:
+        condition: service_healthy
     volumes:
-      - ./data/adguard/work:/opt/adguardhome/work
+      - ./data/adguard/workdir:/opt/adguardhome/work
       - ./data/adguard/conf:/opt/adguardhome/conf
-    networks:
-      - lab
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "adguardhome"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     profiles:
       - vpn
+    network_mode: service:tailscale-adguard
+
+  ###### Tailscale for Adguard Home #########
+  tailscale-adguard:
+    image: tailscale/tailscale:latest
+    container_name: lab.tailscale-adguard
+    hostname: adguard
+    ports:
+      - 3000:3000
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: false
+      TS_ENABLE_HEALTH_CHECK: true
+      TS_LOCAL_ADDR_PORT: 127.0.0.1:9002
+      TS_SERVE_CONFIG: /etc/tailscale/serve.json
+      TS_EXTRA_ARGS: --accept-dns=true
+    volumes:
+      - ./data/tailscale-adguard/state:/var/lib/tailscale
+      - ./configs/tailscale/adguard/serve.json:/etc/tailscale/serve.json:ro
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
+    restart: unless-stopped
+  profiles:
+    - vpn
 
   ###### tsdproxy #########
   tsdproxy:
