@@ -4,3 +4,4 @@ data/**
 !data/ddclient/ddclient.conf.example
 configs/tailscale/extras/**
 extras.docker-compose.yml
+configs/tailscale/ssh/serve.json

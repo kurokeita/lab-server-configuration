@@ -4,14 +4,14 @@
       "HTTPS": true
     },
     "22": {
-      "TCPForward": "host.docker.internal:22"
+      "TCPForward": "host_ip:22"
     }
   },
   "Web": {
     "${TS_CERT_DOMAIN}:443": {
       "Handlers": {
         "/": {
-          "Proxy": "http://host.docker.internal:8880"
+          "Proxy": "http://host_ip:8880"
         }
       }
     }
