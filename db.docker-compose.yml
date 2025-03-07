@@ -44,7 +44,6 @@ services:
       - "3306:3306"
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_EXTRA_ARGS=--advertise-tags=tag:server
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=false
       - TS_ENABLE_HEALTH_CHECK=true
@@ -91,7 +90,6 @@ services:
       - "5432:5432"
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_EXTRA_ARGS=--advertise-tags=tag:server
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=false
       - TS_ENABLE_HEALTH_CHECK=true
@@ -135,7 +133,6 @@ services:
       - "27017:27017"
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_EXTRA_ARGS=--advertise-tags=tag:server
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=false
       - TS_ENABLE_HEALTH_CHECK=true
