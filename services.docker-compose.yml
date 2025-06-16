@@ -15,13 +15,6 @@ services:
   keycloak:
     container_name: lab.keycloak
     image: quay.io/keycloak/keycloak:latest
-    healthcheck:
-      test: chmod +x /opt/healthcheck.sh && /opt/healthcheck.sh || exit 1
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
-    restart: always
     ports:
       - "8080:8080"
     environment:
@@ -29,7 +22,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
       # KC_PROXY: edge
       KC_HTTP_ENABLED: true
-      KC_DB: mariadb
+      KC_DB: postgres
       KC_DB_USERNAME: ${KC_DB_USERNAME}
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
       KC_DB_URL_HOST: ${KC_DB_HOST}
@@ -37,10 +30,17 @@ services:
       KC_HOSTNAME: keycloak.kurokeita.dev
       KC_HEALTH_ENABLED: true
       KC_PROXY_HEADERS: xforwarded
+      KC_DB_URL: jdbc:postgresql://${KC_DB_HOST}:${KC_DB_PORT}/${KC_DB_NAME}?prepareThreshold=0
+      # Connection pool settings for Supabase
+      KC_DB_POOL_INITIAL_SIZE: 5
+      KC_DB_POOL_MIN_SIZE: 5
+      KC_DB_POOL_MAX_SIZE: 10
+      KC_TRANSACTION_XA_ENABLED: false
     volumes:
       - ./data/keycloak:/opt/keycloak/data/
       - ./healthcheck/keycloak.sh:/opt/healthcheck.sh
-    command: start
+    entrypoint: /bin/sh
+    command: -c "/opt/keycloak/bin/kc.sh build && /opt/keycloak/bin/kc.sh start --optimized"
     user: root
     networks:
       - lab
