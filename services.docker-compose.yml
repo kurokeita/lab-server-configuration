@@ -38,7 +38,7 @@ services:
       KC_TRANSACTION_XA_ENABLED: false
     volumes:
       - ./data/keycloak:/opt/keycloak/data/
-      - ./healthcheck/keycloak.sh:/opt/healthcheck.sh
+      # - ./healthcheck/keycloak.sh:/opt/healthcheck.sh // Health check is not working with a set hostname, commented out for now
     entrypoint: /bin/sh
     command: -c "/opt/keycloak/bin/kc.sh build && /opt/keycloak/bin/kc.sh start --optimized"
     user: root
