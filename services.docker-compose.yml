@@ -27,7 +27,7 @@ services:
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
       KC_DB_URL_HOST: ${KC_DB_HOST}
       KC_DB_URL_PORT: ${KC_DB_PORT}
-      KC_HOSTNAME: keycloak.kurokeita.dev
+      KC_HOSTNAME: ${KC_HOSTNAME}
       KC_HEALTH_ENABLED: true
       KC_PROXY_HEADERS: xforwarded
       KC_DB_URL: jdbc:postgresql://${KC_DB_HOST}:${KC_DB_PORT}/${KC_DB_NAME}?prepareThreshold=0
@@ -41,6 +41,7 @@ services:
       # - ./healthcheck/keycloak.sh:/opt/healthcheck.sh // Health check is not working with a set hostname, commented out for now
     entrypoint: /bin/sh
     command: -c "/opt/keycloak/bin/kc.sh build && /opt/keycloak/bin/kc.sh start --optimized"
+    restart: unless-stopped
     user: root
     networks:
       - lab
