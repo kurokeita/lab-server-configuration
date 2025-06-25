@@ -186,3 +186,10 @@ services:
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
     restart: unless-stopped
+
+  ###### Redis #########
+  redis:
+    image: redis:latest
+    container_name: lab.redis
+    restart: unless-stopped
+    network_mode: host
